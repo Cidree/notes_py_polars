@@ -58,8 +58,18 @@ titanic_pl. \
     group_by(['Survived', 'Sex']). \
     agg(
         pl.col('PassengerId').count().alias('Number of passengers'),
-        pl.col('Age').mean().round(1).alias('Mean age')
+        pl.col('Age').mean().round(1).alias('Mean age'),
+        (pl.col("Age").mean() - pl.col("Age").std()).alias("minus_one_std")
     )
+
+## 3.6. Rename cols ----------
+
+titanic_pl. \
+    rename({
+        'PassengerId': 'Id',
+        'Age': 'Edad',
+        'Survived': 'Supervivientes'
+    })
 
 # 4. Visualization ----------------------------
 
@@ -70,32 +80,3 @@ titanic_pl. \
         y = 'Fare'
     )
 
-# 5. Lazy mode --------------------------------
-
-## Lazy mode: polars uses a query graph to optimize the query
-## to do so, we have to 'scan' the data instead of read it
-
-## read in lazy mode
-pl.scan_csv('00_data\\titanic.csv'). \
-    group_by('Survived', 'Pclass'). \
-    agg(
-        pl.col('PassengerId').count().alias('counts')
-    )
-
-## view the query optimizer
-pl.scan_csv('00_data\\titanic.csv'). \
-    filter(pl.col('Age') > 50). \
-    group_by('Survived', 'Pclass'). \
-    agg(
-        pl.col('PassengerId').count().alias('counts')
-    ). \
-    explain()
-
-## evaluate the query, and retrieve the results
-pl.scan_csv('00_data\\titanic.csv'). \
-    filter(pl.col('Age') > 50). \
-    group_by('Survived', 'Pclass'). \
-    agg(
-        pl.col('PassengerId').count().alias('counts')
-    ). \
-    collect()
